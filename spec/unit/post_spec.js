@@ -61,7 +61,7 @@ describe("Post", () => {
     });
   });
   describe("#setTopic()", () => {
-    it("should associate a topoic and a post together", done => {
+    it("should associate a topic and a post together", done => {
       Topic.create({
         title: "Challenges of interstellar travel",
         description: "1. The Wi-Fi is terrible"
