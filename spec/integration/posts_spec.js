@@ -43,6 +43,16 @@ describe("routes : posts", () => {
   });
   // Guest user context
   describe("guest user performing CRUD actions for posts", () => {
+    beforeEach( done => {
+      request.get({           // mock authentication
+        url: "http://localhost:3000/auth/fake",
+        form: {
+          userId: 0 // flag to indicate mock auth to destroy any session
+        }
+      }, (err, res, body) => {
+        done();
+      });
+    });
     
     describe("GET /topics/:topicId/new", () => {
       it("should not render a new post form & redirect to Topic view", done => {
