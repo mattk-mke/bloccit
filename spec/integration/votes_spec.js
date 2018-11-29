@@ -20,31 +20,39 @@ describe("routes : votes", () => {
         email: "starman@tesla.com",
         password: "Trekkie4lyfe"
       })
-      .then((res) => {
-        this.user = res;
+      .then((user) => {
+        this.user = user;
 
         Topic.create({
           title: "Expeditions to Alpha Centauri",
           description: "A compilation of reports from recent visits to the star system.",
-          posts: [{
-            title: "My first visit to Proxima Centauri b",
-            body: "I saw some rocks.",
-            userId: this.user.id
-          }]
         }, {
           include: {
             model: Post,
             as: "posts"
           }
         })
-        .then((res) => {
-          this.topic = res;
-          this.post = this.topic.posts[0];
-          done();
-        })
-        .catch((err) => {
-          console.log(err);
-          done();
+        .then((topic) => {
+          this.topic = topic;
+          Post.create({
+            title: "My first visit to Proxima Centauri b",
+            body: "I saw some rocks.",
+            userId: this.user.id,
+            topicId: topic.id
+          }, {
+            include: {                        //nested creation of posts
+              model: Vote,
+              as: "votes"
+            }
+          })
+          .then( post => {
+            this.post = post;
+            done();
+          })
+          .catch( err => {
+            console.log(err);
+            done();
+          });
         });
       });
     });
@@ -135,6 +143,34 @@ describe("routes : votes", () => {
             .catch((err) => {
               console.log(err);
               done();
+            });
+          }
+        );
+      });
+      it("should not create more than one upvote per user", (done) => {
+        const options = {
+          url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`
+        };
+        request.get(options, // first upvote
+          (err, res, body) => {
+            Vote.all()
+            .then( votes => {
+              const voteCountAfterFirstVote = votes.length;
+              expect(err).toBeNull();
+              expect(voteCountAfterFirstVote).toBe(1);
+              request.get(options, //second upvote from the same user
+                (err, res, body) => {
+                  Vote.all()
+                  .then( votes => {
+                    expect(err).toBeNull();
+                    expect(votes.length).toBe(voteCountAfterFirstVote);
+                    done();
+                  })
+                  .catch( err => {
+                    expect(err).toBeNull();
+                    done();
+                  });
+                });
             });
           }
         );
