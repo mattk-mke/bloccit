@@ -106,6 +106,19 @@ describe("routes : favorites", () => {
       );
     });
 
+    afterEach( done => {
+      request.get({         // mock authentication
+        url: "http://localhost:3000/auth/fake",
+        form: {
+          userId: 0
+        }
+      },
+        (err, res, body) => {
+          done();
+        }
+      );
+    });
+
     describe("POST /topics/:topicId/posts/:postId/favorites/create", () => {
       it("should create a favorite", (done) => {
         const options = {
@@ -141,20 +154,22 @@ describe("routes : favorites", () => {
         };
         let favCountBeforeDelete;
         request.post(options, (err, res, body) => {
-          this.post.getFavorites()
-          .then((favorites) => {
-            const favorite = favorites[0];
-            favCountBeforeDelete = favorites.length;
-            request.post(`${base}${this.topic.id}/posts/${this.post.id}/favorites/${favorite.id}/destroy`,
-              (err, res, body) => {
-                this.post.getFavorites()
-                .then((favorites) => {
-                  expect(favorites.length).toBe(favCountBeforeDelete - 1);
-                  done();
-                });
-              }
-            );
-          });
+          setTimeout( () => {
+            this.post.getFavorites()
+            .then((favorites) => {
+              const favorite = favorites[0];
+              favCountBeforeDelete = favorites.length;
+              request.post(`${base}${this.topic.id}/posts/${this.post.id}/favorites/${favorite.id}/destroy`,
+                (err, res, body) => {
+                  this.post.getFavorites()
+                  .then((favorites) => {
+                    expect(favorites.length).toBe(favCountBeforeDelete - 1);
+                    done();
+                  });
+                }
+              );
+            });
+          }, 1000);
         });
       });
     });

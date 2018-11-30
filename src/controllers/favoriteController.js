@@ -6,6 +6,7 @@ module.exports = {
       favoriteQueries.createFavorite(req, (err, favorite) => {
         if (err) {
           req.flash("error", err);
+          console.log(err);
         }
       });
     } else {
